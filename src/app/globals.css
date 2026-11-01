@@ -1,26 +1,173 @@
 @import "tailwindcss";
+@import "lenis/dist/lenis.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-white: #FFFFFF;
+  --color-cloud: #F6F7F9;
+  --color-ink: #0F172A;
+  --color-ink-muted: #475569;
+  --color-accent: #B8863B;
+  --color-emerald: #0D9488;
+
+  --font-heading: var(--font-jakarta), sans-serif;
+  --font-sans: var(--font-inter), sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    border-radius: 0px !important;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html {
+    scrollbar-gutter: stable;
+    max-width: 100vw;
+    overflow-x: clip;
+  }
+
+  body {
+    max-width: 100vw;
+    overflow-x: clip;
+    background-color: var(--color-white);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+  }
+
+  p {
+    font-weight: 300;
+  }
+
+  button,
+  [role="button"],
+  a,
+  select,
+  summary,
+  label[for] {
+    cursor: pointer;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Unified Edge-to-Edge Container across Navbar, Sections & Footer */
+.page-shell {
+  width: 100%;
+  max-width: 2400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+  .page-shell {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-shell {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .page-shell {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .page-shell {
+    padding-left: 6rem;
+    padding-right: 6rem;
+  }
+}
+
+/* Word Split Mask for Headings — prevents descender clipping */
+.word-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
+  padding-right: 0.04em;
+}
+
+.word-inner {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* Line Split Mask for Body Text — staggered line-by-line Y-axis reveal */
+.line-mask {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
+}
+
+.line-inner {
+  display: block;
+  will-change: transform;
+}
+
+/* Preloader Initial Hidden States to Prevent SSR / Hydration Flash */
+.preloader-init-y {
+  transform: translate3d(0, 125%, 0);
+  will-change: transform;
+}
+
+.preloader-init-scale-y {
+  transform: scaleY(0);
+  transform-origin: top center;
+  will-change: transform;
+}
+
+.preloader-init-scale-x {
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+/* Sharp Custom Range Sliders */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px;
+  background: #CBD5E1;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 18px;
+  width: 18px;
+  background: #0F172A;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+  margin-top: -7.5px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  background: #B8863B;
 }
