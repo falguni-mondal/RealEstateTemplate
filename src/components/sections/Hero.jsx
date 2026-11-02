@@ -1,7 +1,14 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, SplitText, useGSAP, EASE_EXPO, EASE_OUT } from "@/lib/gsap";
+import {
+  gsap,
+  ScrollTrigger,
+  SplitText,
+  useGSAP,
+  EASE_EXPO,
+  EASE_OUT,
+} from "@/lib/gsap";
 import { useSmoothScroll } from "@/components/providers/SmoothScroll";
 import DirectionalButton from "@/components/ui/DirectionalButton";
 import { siteConfig } from "@/config/siteConfig";
@@ -13,12 +20,16 @@ export default function Hero() {
   const subtitleRef = useRef(null);
   const imageScrubWrapRef = useRef(null);
   const imageEntranceRef = useRef(null);
+  const imgParallaxRef = useRef(null);
   const imgRef = useRef(null);
   const { scrollTo } = useSmoothScroll();
 
   useGSAP(
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+      // Prevent mobile address bar show/hide from recalculating ScrollTrigger progress
+      ScrollTrigger.config({ ignoreMobileResize: true });
 
       // 1. Split Heading into Words inside .word-mask (overflow: hidden)
       const wordSplit = new SplitText(titleRef.current, {
@@ -127,7 +138,7 @@ export default function Hero() {
         });
       }
 
-      // 3. Non-Conflicting Scroll-Scrubbed Curtain Expansion (Starts at scrollY = 0)
+      // 3. Scroll-Scrubbed Horizontal Curtain Expansion (Starts at scrollY = 0)
       gsap.fromTo(
         imageScrubWrapRef.current,
         { clipPath: "inset(0% 5% 0% 5%)" },
@@ -143,12 +154,12 @@ export default function Hero() {
         }
       );
 
-      // 4. Vertical Parallax Scrub on Hero Image
+      // 4. Isolated Vertical Parallax Scrub on Dedicated Wrapper (Never overwrites imgRef scale)
       gsap.fromTo(
-        imgRef.current,
+        imgParallaxRef.current,
         { yPercent: -6 },
         {
-          yPercent: 10,
+          yPercent: 6,
           ease: "none",
           scrollTrigger: {
             trigger: imageScrubWrapRef.current,
@@ -224,24 +235,30 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Outer Wrapper: Scroll-Scrubbed Horizontal Expansion */}
+      {/* Outer Wrapper: Uses svh instead of dvh so mobile address bars never resize the height */}
       <div className="mt-14 md:mt-18">
         <div
           ref={imageScrubWrapRef}
           style={{ clipPath: "inset(0% 5% 0% 5%)" }}
-          className="relative h-[60dvh] w-full overflow-hidden md:h-[78dvh]"
+          className="relative h-[60svh] w-full overflow-hidden md:h-[78svh]"
         >
-          {/* Inner Wrapper: Post-Preloader Vertical Curtain Entrance */}
+          {/* Middle Wrapper: Post-Preloader Vertical Curtain Entrance */}
           <div
             ref={imageEntranceRef}
             className="relative h-full w-full overflow-hidden bg-cloud"
           >
-            <img
-              ref={imgRef}
-              src={siteConfig.hero.bgImage}
-              alt="Aurelia Greens Durgapur modern apartment facade"
-              className="h-[118%] w-full object-cover will-change-transform"
-            />
+            {/* Inner Parallax Wrapper: Vertically centered -top-[9%] h-[118%] buffer */}
+            <div
+              ref={imgParallaxRef}
+              className="relative -top-[9%] h-[118%] w-full will-change-transform"
+            >
+              <img
+                ref={imgRef}
+                src={siteConfig.hero.bgImage}
+                alt="Aurelia Greens Durgapur modern apartment facade"
+                className="h-full w-full object-cover will-change-transform"
+              />
+            </div>
 
             <div className="page-shell absolute inset-x-0 bottom-6 md:bottom-10">
               <div className="grid grid-cols-1 border border-ink/15 bg-white/95 backdrop-blur-md sm:grid-cols-3">

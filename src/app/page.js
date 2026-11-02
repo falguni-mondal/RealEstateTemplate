@@ -25,8 +25,8 @@ export default function HomePage() {
       <Navbar />
       <main id="main-content">
         <Hero />
-        {/* <HeroCinematic />
-        <HeroParallaxBg /> */}
+        {/* <HeroCinematic /> */}
+        {/* <HeroParallaxBg /> */}
         <TrustStrip />
         <AboutFounder />
         <FeaturedProjects />
