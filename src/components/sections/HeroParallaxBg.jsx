@@ -24,13 +24,12 @@ export default function HeroParallaxBg() {
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-      // 1. True Full-Bleed Background Parallax Scrub
+      // 1. True Full-Bleed Background Parallax Scrub (Centered buffer)
       gsap.fromTo(
         bgWrapRef.current,
-        { yPercent: -16, scale: 1.16 },
+        { yPercent: -8 },
         {
-          yPercent: 16,
-          scale: 1.0,
+          yPercent: 8,
           ease: "none",
           scrollTrigger: {
             trigger: sectionRef.current,
@@ -44,9 +43,9 @@ export default function HeroParallaxBg() {
       // 2. Differential Scroll Speed on Main Stage vs Bottom Ledger
       gsap.fromTo(
         stageRef.current,
-        { y: 55 },
+        { y: 40 },
         {
-          y: -45,
+          y: -35,
           ease: "none",
           scrollTrigger: {
             trigger: sectionRef.current,
@@ -59,9 +58,9 @@ export default function HeroParallaxBg() {
 
       gsap.fromTo(
         ledgerRef.current,
-        { y: 30 },
+        { y: 20 },
         {
-          y: -20,
+          y: -15,
           ease: "none",
           scrollTrigger: {
             trigger: sectionRef.current,
@@ -153,21 +152,20 @@ export default function HeroParallaxBg() {
   return (
     <section
       ref={sectionRef}
-      className="relative flex min-h-dvh w-full flex-col justify-between overflow-hidden py-16 text-white sm:py-20 md:py-24"
+      className="relative flex min-h-svh w-full flex-col justify-between overflow-hidden py-16 text-white sm:py-20 md:py-24"
     >
       {/* Full-Screen Parallax Image Background + Rich Black-Tinted Architectural Overlay */}
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         <div
           ref={bgWrapRef}
-          className="relative -top-[16%] h-[132%] w-full will-change-transform"
+          className="relative -top-[12%] h-[124%] w-full will-change-transform"
         >
           <img
             src={siteConfig.heroParallax.bgImage}
             alt="Aurelia Durgapur evening architectural residence"
-            className="h-full w-full object-cover"
+            className="h-full w-full scale-105 object-cover"
           />
         </div>
-        {/* Deep Black-Tinted Architectural Overlay (Never Washed Out) */}
         <div className="absolute inset-0 bg-black/55" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/35 to-black/85" />
       </div>

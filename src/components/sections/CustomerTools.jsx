@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { gsap, useGSAP, EASE_EXPO } from "@/lib/gsap";
+import { gsap, ScrollTrigger, useGSAP, EASE_EXPO } from "@/lib/gsap";
 import SectionHeading from "@/components/ui/SectionHeading";
 
 const WB_UNITS = {
@@ -50,16 +50,14 @@ export default function CustomerTools() {
 
   const { contextSafe } = useGSAP({ scope: sectionRef });
 
-  // ScrollTrigger reveal on section
   useGSAP(
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       gsap.fromTo(
         ".tools-shell",
-        { clipPath: "inset(100% 0% 0% 0%)", y: 40 },
+        { clipPath: "inset(100% 0% 0% 0%)" },
         {
           clipPath: "inset(0% 0% 0% 0%)",
-          y: 0,
           duration: 1.0,
           ease: EASE_EXPO,
           scrollTrigger: {
@@ -73,7 +71,6 @@ export default function CustomerTools() {
     { scope: sectionRef }
   );
 
-  // Smoothly shift the active tab background indicator from previous tab to new tab
   const moveTabIndicator = contextSafe((targetId, immediate = false) => {
     const bar = tabBarRef.current;
     const btn = tabBtnRefs.current[targetId];
@@ -97,10 +94,16 @@ export default function CustomerTools() {
 
   useEffect(() => {
     moveTabIndicator(tab, true);
-    const onResize = () => moveTabIndicator(tab, true);
+    let lastW = window.innerWidth;
+    const onResize = () => {
+      if (window.innerWidth !== lastW) {
+        lastW = window.innerWidth;
+        moveTabIndicator(tab, true);
+      }
+    };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, []);
+  }, [tab]);
 
   const handleTabSwitch = contextSafe((newTab) => {
     if (newTab === tab) return;
@@ -110,12 +113,13 @@ export default function CustomerTools() {
     if (panelBodyRef.current) {
       gsap.fromTo(
         panelBodyRef.current,
-        { clipPath: "inset(100% 0% 0% 0%)", y: 28 },
+        { clipPath: "inset(100% 0% 0% 0%)", y: 20 },
         {
           clipPath: "inset(0% 0% 0% 0%)",
           y: 0,
           duration: 0.65,
           ease: EASE_EXPO,
+          onComplete: () => ScrollTrigger.refresh(),
         }
       );
     }
@@ -158,7 +162,7 @@ export default function CustomerTools() {
   const strokeDash = `${(emiStats.principalPct / 100) * circ} ${circ}`;
 
   return (
-    <section id="calculators" ref={sectionRef} className="bg-cloud py-20 md:py-32">
+    <section id="calculators" ref={sectionRef} className="bg-cloud py-24 sm:py-28 md:py-36">
       <div className="page-shell">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <SectionHeading
@@ -292,10 +296,16 @@ export default function CustomerTools() {
                     </p>
                     <div className="border-t border-ink/10 pt-3 text-sm font-light text-ink-muted">
                       <div>
-                        Principal: <span className="font-normal text-ink">{formatINR(loan)}</span>
+                        Principal:{" "}
+                        <span className="font-normal text-ink">
+                          {formatINR(loan)}
+                        </span>
                       </div>
                       <div className="mt-1">
-                        Interest: <span className="font-normal text-ink">{formatINR(emiStats.interest)}</span>
+                        Interest:{" "}
+                        <span className="font-normal text-ink">
+                          {formatINR(emiStats.interest)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -361,7 +371,6 @@ export default function CustomerTools() {
                   </div>
                 </div>
 
-                {/* Light-Theme Affordability Output Card */}
                 <div className="border border-ink/15 bg-cloud p-8 text-ink lg:col-span-5">
                   <span className="text-xs font-normal tracking-wider text-accent uppercase">
                     Recommended Home Budget

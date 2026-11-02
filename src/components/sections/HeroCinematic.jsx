@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, useGSAP, EASE_EXPO, revealWords, revealLines } from "@/lib/gsap";
+import { gsap, useGSAP, EASE_EXPO, EASE_OUT, revealWords, revealLines } from "@/lib/gsap";
 import { useSmoothScroll } from "@/components/providers/SmoothScroll";
 import DirectionalButton from "@/components/ui/DirectionalButton";
 import { siteConfig } from "@/config/siteConfig";
@@ -12,6 +12,7 @@ export default function HeroCinematic() {
   const headingRef = useRef(null);
   const subRef = useRef(null);
   const mediaFrameRef = useRef(null);
+  const videoParallaxRef = useRef(null);
   const videoRef = useRef(null);
   const floatCardRef = useRef(null);
   const { scrollTo } = useSmoothScroll();
@@ -69,13 +70,27 @@ export default function HeroCinematic() {
         }
       );
 
-      // 4. Video Parallax + Differential Scroll Speed on Overlapping Spec Box
       gsap.fromTo(
         videoRef.current,
-        { scale: 1.18, yPercent: -10 },
+        { scale: 1.18 },
         {
-          scale: 1,
-          yPercent: 10,
+          scale: 1.06,
+          duration: 1.45,
+          ease: EASE_OUT,
+          scrollTrigger: {
+            trigger: mediaFrameRef.current,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+        }
+      );
+
+      // 4. Isolated Video Parallax + Differential Scroll Speed on Spec Box
+      gsap.fromTo(
+        videoParallaxRef.current,
+        { yPercent: -6 },
+        {
+          yPercent: 6,
           ease: "none",
           scrollTrigger: {
             trigger: mediaFrameRef.current,
@@ -88,9 +103,9 @@ export default function HeroCinematic() {
 
       gsap.fromTo(
         floatCardRef.current,
-        { y: 70 },
+        { y: 50 },
         {
-          y: -50,
+          y: -40,
           ease: "none",
           scrollTrigger: {
             trigger: sectionRef.current,
@@ -163,28 +178,33 @@ export default function HeroCinematic() {
           </div>
         </div>
 
-        {/* Unwashed Framed Video & Image Showcase with Scroll-Speed Floating Bar */}
+        {/* Unwashed Framed Video & Image Showcase with Stable svh Height */}
         <div className="relative mt-14 md:mt-18">
           <div
             ref={mediaFrameRef}
-            className="relative h-[54dvh] w-full overflow-hidden border border-ink/15 bg-white md:h-[70dvh]"
+            className="relative h-[54svh] w-full overflow-hidden border border-ink/15 bg-white md:h-[70svh]"
           >
-            <video
-              ref={videoRef}
-              autoPlay
-              loop
-              muted
-              playsInline
-              poster={siteConfig.heroAlternative.fallbackImage}
-              className="h-[120%] w-full object-cover will-change-transform"
+            <div
+              ref={videoParallaxRef}
+              className="relative -top-[9%] h-[118%] w-full will-change-transform"
             >
-              <source src={siteConfig.heroAlternative.videoUrl} type="video/mp4" />
-            </video>
+              <video
+                ref={videoRef}
+                autoPlay
+                loop
+                muted
+                playsInline
+                poster={siteConfig.heroAlternative.fallbackImage}
+                className="h-full w-full object-cover will-change-transform"
+              >
+                <source src={siteConfig.heroAlternative.videoUrl} type="video/mp4" />
+              </video>
+            </div>
           </div>
 
           <div
             ref={floatCardRef}
-            className="relative z-10 mx-auto -mt-12 grid max-w-5xl grid-cols-1 border border-ink/15 bg-white shadow-xl sm:grid-cols-3 md:-mt-16"
+            className="relative z-10 mx-auto -mt-12 grid max-w-5xl grid-cols-1 border border-ink/15 bg-white shadow-xl will-change-transform sm:grid-cols-3 md:-mt-16"
           >
             {siteConfig.heroAlternative.highlights.map((item) => (
               <div

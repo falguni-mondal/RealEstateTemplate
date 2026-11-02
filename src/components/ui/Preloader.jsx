@@ -168,7 +168,7 @@ export default function Preloader() {
       className="pointer-events-none fixed inset-0 z-50 overflow-hidden"
     >
       {/* 6 Architectural Curtain Shutters with 1px Overlap so Zero Seams Show */}
-      <div className="grid h-dvh w-full grid-cols-6">
+      <div className="grid h-svh w-full grid-cols-6">
         {SHUTTERS.map((col, idx) => (
           <div key={col} className="relative h-full w-full overflow-visible">
             <div

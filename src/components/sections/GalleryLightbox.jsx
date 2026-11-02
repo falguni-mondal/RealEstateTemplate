@@ -34,17 +34,16 @@ export default function GalleryLightbox() {
         }
       );
 
-      // Image Parallax inside each frame
-      gsap.utils.toArray(".gallery-parallax-img").forEach((img) => {
+      // Centered Image Parallax inside each frame
+      gsap.utils.toArray(".gallery-parallax-wrap").forEach((wrap) => {
         gsap.fromTo(
-          img,
-          { scale: 1.18, yPercent: -10 },
+          wrap,
+          { yPercent: -6 },
           {
-            scale: 1,
-            yPercent: 10,
+            yPercent: 6,
             ease: "none",
             scrollTrigger: {
-              trigger: img.parentElement,
+              trigger: ".gallery-grid",
               start: "top bottom",
               end: "bottom top",
               scrub: true,
@@ -56,16 +55,20 @@ export default function GalleryLightbox() {
       // Scroll-Speed Manipulation on Alternate Columns (Desktop)
       const mm = gsap.matchMedia();
       mm.add("(min-width: 1024px)", () => {
-        gsap.to(".gallery-speed-fast", {
-          y: -36,
-          ease: "none",
-          scrollTrigger: {
-            trigger: ".gallery-grid",
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true,
-          },
-        });
+        gsap.fromTo(
+          ".gallery-speed-fast",
+          { y: 24 },
+          {
+            y: -24,
+            ease: "none",
+            scrollTrigger: {
+              trigger: ".gallery-grid",
+              start: "top bottom",
+              end: "bottom top",
+              scrub: true,
+            },
+          }
+        );
       });
 
       return () => mm.revert();
@@ -90,47 +93,51 @@ export default function GalleryLightbox() {
   }, [activeIdx, items.length, lockScroll, unlockScroll]);
 
   return (
-    <section id="gallery" ref={sectionRef} className="bg-white py-20 md:py-32">
+    <section id="gallery" ref={sectionRef} className="bg-white py-24 sm:py-28 md:py-36">
       <div className="page-shell">
         <SectionHeading
           title="Take a closer look inside Aurelia Greens."
           subtitle="Click any photo or video below to view in full screen."
         />
 
-        <div className="gallery-grid mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="gallery-grid mt-14 grid grid-cols-1 gap-6 sm:mt-16 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item, idx) => (
-            <button
+            <div
               key={item.id}
-              type="button"
-              onClick={() => setActiveIdx(idx)}
-              className={`gallery-item group relative aspect-16/11 w-full cursor-pointer overflow-hidden border border-ink/15 bg-cloud text-left ${
-                idx % 3 === 1 ? "gallery-speed-fast" : ""
-              }`}
+              className={idx % 3 === 1 ? "gallery-speed-fast will-change-transform" : ""}
             >
-              <img
-                src={item.src}
-                alt={item.title}
-                className="gallery-parallax-img h-[120%] w-full object-cover will-change-transform"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
-
-              {item.type === "video" && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="flex h-14 w-14 items-center justify-center bg-white text-ink transition-transform group-hover:scale-110">
-                    <Play className="h-5 w-5 fill-current" />
-                  </span>
+              <button
+                type="button"
+                onClick={() => setActiveIdx(idx)}
+                className="gallery-item group relative aspect-16/11 w-full cursor-pointer overflow-hidden border border-ink/15 bg-cloud text-left"
+              >
+                <div className="gallery-parallax-wrap relative -top-[9%] h-[118%] w-full will-change-transform">
+                  <img
+                    src={item.src}
+                    alt={item.title}
+                    className="h-full w-full scale-105 object-cover"
+                  />
                 </div>
-              )}
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent" />
 
-              <div className="absolute bottom-4 left-4 right-4 bg-white/95 p-3.5 text-ink backdrop-blur-xs">
-                <span className="text-[10px] font-medium tracking-wider text-accent uppercase">
-                  {item.category}
-                </span>
-                <p className="mt-0.5 font-heading text-base font-medium">
-                  {item.title}
-                </p>
-              </div>
-            </button>
+                {item.type === "video" && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="flex h-14 w-14 items-center justify-center bg-white text-ink transition-transform group-hover:scale-110">
+                      <Play className="h-5 w-5 fill-current" />
+                    </span>
+                  </div>
+                )}
+
+                <div className="absolute bottom-4 left-4 right-4 bg-white/95 p-3.5 text-ink backdrop-blur-xs">
+                  <span className="text-[10px] font-medium tracking-wider text-accent uppercase">
+                    {item.category}
+                  </span>
+                  <p className="mt-0.5 font-heading text-base font-medium">
+                    {item.title}
+                  </p>
+                </div>
+              </button>
+            </div>
           ))}
         </div>
       </div>
@@ -166,7 +173,7 @@ export default function GalleryLightbox() {
               <img
                 src={items[activeIdx].src}
                 alt={items[activeIdx].title}
-                className="max-h-[78dvh] w-full object-cover"
+                className="max-h-[78svh] w-full object-cover"
               />
             </div>
             <div className="mt-4 flex justify-between text-sm font-normal text-ink">

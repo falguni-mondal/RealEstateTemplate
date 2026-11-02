@@ -120,13 +120,17 @@ export default function SiteVisitBooking() {
     if (submitted) return;
     moveDateHighlight(selectedDate, true);
     moveSlotHighlight(selectedSlot, true);
+    let lastW = window.innerWidth;
     const onResize = () => {
-      moveDateHighlight(selectedDate, true);
-      moveSlotHighlight(selectedSlot, true);
+      if (window.innerWidth !== lastW) {
+        lastW = window.innerWidth;
+        moveDateHighlight(selectedDate, true);
+        moveSlotHighlight(selectedSlot, true);
+      }
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [submitted]);
+  }, [selectedDate, selectedSlot, submitted]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

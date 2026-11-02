@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { gsap, useGSAP, EASE_EXPO, revealWords, revealLines } from "@/lib/gsap";
+import { gsap, useGSAP, EASE_EXPO, EASE_OUT, revealWords, revealLines } from "@/lib/gsap";
 import SectionHeading from "@/components/ui/SectionHeading";
 import ElasticLine from "@/components/ui/ElasticLine";
 import { siteConfig } from "@/config/siteConfig";
@@ -9,6 +9,7 @@ import { siteConfig } from "@/config/siteConfig";
 export default function AboutFounder() {
   const sectionRef = useRef(null);
   const curtainRef = useRef(null);
+  const photoParallaxRef = useRef(null);
   const photoRef = useRef(null);
   const quoteRef = useRef(null);
   const rightColRef = useRef(null);
@@ -29,13 +30,27 @@ export default function AboutFounder() {
         },
       });
 
-      // 2. Image Parallax Scrub
       gsap.fromTo(
         photoRef.current,
-        { scale: 1.18, yPercent: -10 },
+        { scale: 1.18 },
         {
-          scale: 1,
-          yPercent: 10,
+          scale: 1.06,
+          duration: 1.45,
+          ease: EASE_OUT,
+          scrollTrigger: {
+            trigger: ".about-photo-box",
+            start: "top 82%",
+            toggleActions: "play none none none",
+          },
+        }
+      );
+
+      // 2. Isolated Image Parallax Scrub on Centered Wrapper
+      gsap.fromTo(
+        photoParallaxRef.current,
+        { yPercent: -6 },
+        {
+          yPercent: 6,
           ease: "none",
           scrollTrigger: {
             trigger: ".about-photo-box",
@@ -83,9 +98,9 @@ export default function AboutFounder() {
       mm.add("(min-width: 1024px)", () => {
         gsap.fromTo(
           rightColRef.current,
-          { y: 55 },
+          { y: 40 },
           {
-            y: -55,
+            y: -40,
             ease: "none",
             scrollTrigger: {
               trigger: sectionRef.current,
@@ -116,12 +131,17 @@ export default function AboutFounder() {
 
         <div className="mt-14 grid grid-cols-1 gap-12 sm:mt-16 lg:grid-cols-12 lg:items-start">
           <div className="about-photo-box relative aspect-16/11 w-full overflow-hidden border border-ink/15 bg-cloud lg:col-span-7">
-            <img
-              ref={photoRef}
-              src={siteConfig.about.architectureImage}
-              alt="Aurelia Durgapur residential courtyard"
-              className="h-[120%] w-full object-cover will-change-transform"
-            />
+            <div
+              ref={photoParallaxRef}
+              className="relative -top-[9%] h-[118%] w-full will-change-transform"
+            >
+              <img
+                ref={photoRef}
+                src={siteConfig.about.architectureImage}
+                alt="Aurelia Durgapur residential courtyard"
+                className="h-full w-full object-cover will-change-transform"
+              />
+            </div>
             <div
               ref={curtainRef}
               className="pointer-events-none absolute inset-0 origin-bottom bg-cloud"

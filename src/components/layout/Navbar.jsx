@@ -354,7 +354,7 @@ export default function Navbar() {
         ref={menuOverlayRef}
         data-lenis-prevent
         style={{ clipPath: "inset(0% 0% 100% 0%)" }}
-        className="fixed inset-0 z-40 flex h-dvh flex-col justify-between overflow-y-auto border-b border-ink/15 bg-white pt-24 pb-10 text-ink lg:hidden"
+        className="fixed inset-0 z-40 flex h-svh flex-col justify-between overflow-y-auto border-b border-ink/15 bg-white pt-24 pb-10 text-ink lg:hidden"
       >
         <div className="page-shell my-auto">
           <ul className="divide-y divide-ink/10">

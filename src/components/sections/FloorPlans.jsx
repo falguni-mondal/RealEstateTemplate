@@ -33,10 +33,9 @@ export default function FloorPlans() {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
       gsap.fromTo(
         ".floorplan-box",
-        { clipPath: "inset(100% 0% 0% 0%)", y: 40 },
+        { clipPath: "inset(100% 0% 0% 0%)" },
         {
           clipPath: "inset(0% 0% 0% 0%)",
-          y: 0,
           duration: 1.0,
           ease: EASE_EXPO,
           scrollTrigger: {
@@ -73,10 +72,16 @@ export default function FloorPlans() {
 
   useEffect(() => {
     moveTabIndicator(activeKey, true);
-    const onResize = () => moveTabIndicator(activeKey, true);
+    let lastW = window.innerWidth;
+    const onResize = () => {
+      if (window.innerWidth !== lastW) {
+        lastW = window.innerWidth;
+        moveTabIndicator(activeKey, true);
+      }
+    };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, []);
+  }, [activeKey]);
 
   const handleSelectTab = contextSafe((nextKey) => {
     if (nextKey === activeKey) return;
@@ -125,7 +130,7 @@ export default function FloorPlans() {
   });
 
   return (
-    <section id="floor-plans" ref={sectionRef} className="bg-cloud py-20 md:py-32">
+    <section id="floor-plans" ref={sectionRef} className="bg-cloud py-24 sm:py-28 md:py-36">
       <div className="page-shell">
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <SectionHeading
@@ -180,7 +185,10 @@ export default function FloorPlans() {
               </div>
               <div className="mt-1 overflow-hidden">
                 <span className="fp-text-anim block text-sm font-light text-ink-muted">
-                  Booking Amount: <span className="font-normal text-ink">{plan.bookingAmount}</span>
+                  Booking Amount:{" "}
+                  <span className="font-normal text-ink">
+                    {plan.bookingAmount}
+                  </span>
                 </span>
               </div>
             </div>
@@ -246,13 +254,11 @@ export default function FloorPlans() {
 
           {/* Right Image with Continuous Dual-Layer Curtain Reveal */}
           <div className="relative aspect-4/3 w-full overflow-hidden border border-ink/15 bg-cloud lg:col-span-6">
-            {/* Previous Image Underneath */}
             <img
               src={prevPlan.image}
               alt={prevPlan.title}
               className="absolute inset-0 h-full w-full object-cover"
             />
-            {/* Active Image Wiping Over with Curtain Reveal */}
             <div ref={topImgWrapRef} className="absolute inset-0 overflow-hidden">
               <img
                 ref={topImgRef}
