@@ -8,6 +8,7 @@ import { siteConfig } from "@/config/siteConfig";
 
 export default function AboutFounder() {
   const sectionRef = useRef(null);
+  const leftColRef = useRef(null);
   const curtainRef = useRef(null);
   const photoParallaxRef = useRef(null);
   const photoRef = useRef(null);
@@ -18,7 +19,6 @@ export default function AboutFounder() {
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-      // 1. Curtain reveal on ScrollTrigger
       gsap.to(curtainRef.current, {
         scaleY: 0,
         duration: 1.25,
@@ -45,12 +45,11 @@ export default function AboutFounder() {
         }
       );
 
-      // 2. Isolated Image Parallax Scrub on Centered Wrapper
       gsap.fromTo(
         photoParallaxRef.current,
-        { yPercent: -6 },
+        { yPercent: -12 },
         {
-          yPercent: 6,
+          yPercent: 12,
           ease: "none",
           scrollTrigger: {
             trigger: ".about-photo-box",
@@ -61,7 +60,6 @@ export default function AboutFounder() {
         }
       );
 
-      // 3. Word-by-word reveal on Founder Quote
       const cleanupQuote = revealWords(quoteRef.current, {
         trigger: quoteRef.current,
         start: "top 88%",
@@ -69,7 +67,6 @@ export default function AboutFounder() {
         duration: 0.85,
       });
 
-      // 4. Line-by-line Y-axis overflow-hidden reveal on Timeline Body Descriptions
       const cleanupTimelineLines = revealLines(".about-body-line", {
         trigger: ".about-timeline-list",
         start: "top 86%",
@@ -93,20 +90,35 @@ export default function AboutFounder() {
         }
       );
 
-      // 5. Selective Differential Scroll Speed Manipulation (Desktop)
+      // Strong Opposing Scroll Speed Manipulation (Left Slower Down, Right Faster Up)
       const mm = gsap.matchMedia();
       mm.add("(min-width: 1024px)", () => {
         gsap.fromTo(
-          rightColRef.current,
-          { y: 40 },
+          leftColRef.current,
+          { y: -65 },
           {
-            y: -40,
+            y: 65,
             ease: "none",
             scrollTrigger: {
               trigger: sectionRef.current,
               start: "top bottom",
               end: "bottom top",
-              scrub: 0.6,
+              scrub: 0.5,
+            },
+          }
+        );
+
+        gsap.fromTo(
+          rightColRef.current,
+          { y: 135 },
+          {
+            y: -135,
+            ease: "none",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: 0.5,
             },
           }
         );
@@ -130,10 +142,13 @@ export default function AboutFounder() {
         />
 
         <div className="mt-14 grid grid-cols-1 gap-12 sm:mt-16 lg:grid-cols-12 lg:items-start">
-          <div className="about-photo-box relative aspect-16/11 w-full overflow-hidden border border-ink/15 bg-cloud lg:col-span-7">
+          <div
+            ref={leftColRef}
+            className="about-photo-box relative aspect-16/11 w-full overflow-hidden border border-ink/15 bg-cloud will-change-transform lg:col-span-7"
+          >
             <div
               ref={photoParallaxRef}
-              className="relative -top-[9%] h-[118%] w-full will-change-transform"
+              className="relative -top-[14%] h-[128%] w-full will-change-transform"
             >
               <img
                 ref={photoRef}

@@ -144,6 +144,13 @@ export const siteConfig = {
     { label: "Handover Date", value: "December 2027", sub: "Structure currently at 11th Floor" },
     { label: "Community Club", value: "25,000 Sq. Ft.", sub: "Swimming pool, gym, and banquet hall" },
   ],
+  highlightsMedia: {
+    mainImage:
+      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=85",
+    secondaryImage:
+      "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=900&q=80",
+    caption: "Tower A & B — Earthquake-resistant RCC superstructure at 11th floor slab in City Centre.",
+  },
   constructionStages: [
     { stage: "Foundation & Piling", status: "100% Completed" },
     { stage: "Basement & Podium", status: "100% Completed" },
@@ -317,18 +324,39 @@ export const siteConfig = {
   testimonials: [
     {
       name: "Subhendu & Mitali Roy",
-      unit: "3 BHK Flat, Bidhannagar",
-      quote: "We got our flat keys right on time. The rooms get plenty of sunlight and airflow, and the construction quality is solid.",
+      role: "Senior Engineer, Durgapur Steel Plant",
+      unit: "3 BHK Corner Flat · Bidhannagar",
+      handover: "Keys Received 2 Months Early",
+      quote:
+        "We got our flat keys right on time without a single follow-up. Every room gets natural southern sunlight and cross-breeze, and the wall finish is rock solid even after three monsoons.",
+      image:
+        "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=85",
+      avatar:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
     },
     {
       name: "Dr. Arindam Mondal",
-      unit: "3 Katha Plot, Bamunara",
-      quote: "All land papers, parcha, and conversion certificates were 100% clear. Registration in Durgapur took less than two weeks.",
+      role: "Consultant Physician, Mission Hospital",
+      unit: "3.5 Katha Villa Plot · Bamunara",
+      handover: "Mutation & Registry in 12 Days",
+      quote:
+        "Buying land usually means endless paperwork anxiety. Aurelia handed us a 100% verified parcha, conversion certificate, and underground drainage ready before we even started our house blueprint.",
+      image:
+        "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=85",
+      avatar:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80",
     },
     {
-      name: "Soumya Chatterjee",
-      unit: "2 BHK Flat, City Centre",
-      quote: "The pricing sheet was completely honest. SBI sanctioned our home loan in 5 days because all papers were in place.",
+      name: "Soumya & Rituparna Chatterjee",
+      role: "IT Architect & Educator",
+      unit: "2 BHK Family Flat · City Centre",
+      handover: "SBI Loan Sanctioned in 5 Days",
+      quote:
+        "Their cost sheet listed every rupee upfront—carpet area, GST, and club charges. SBI sanctioned our home loan in five days flat because every legal document was pre-approved.",
+      image:
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85",
+      avatar:
+        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=300&q=80",
     },
   ],
   whyChooseUs: [
@@ -349,6 +377,10 @@ export const siteConfig = {
       desc: "Every quote shows exact carpet area, GST, and maintenance charges upfront with zero hidden costs.",
     },
   ],
+  faqShowcaseImage:
+    "https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=1000&q=85",
+  siteVisitImage:
+    "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1000&q=85",
   faqs: [
     {
       q: "How many Square Feet are in 1 Katha, Decimal, and Bigha in West Bengal?",

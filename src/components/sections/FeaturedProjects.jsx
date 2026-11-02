@@ -13,8 +13,8 @@ const badgeColors = {
 };
 
 export default function FeaturedProjects() {
+  const pinWrapRef = useRef(null);
   const sectionRef = useRef(null);
-  const innerWrapRef = useRef(null);
   const headingRef = useRef(null);
   const trackRef = useRef(null);
   const barRef = useRef(null);
@@ -24,9 +24,9 @@ export default function FeaturedProjects() {
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+      const pinWrap = pinWrapRef.current;
       const track = trackRef.current;
-      const section = sectionRef.current;
-      if (!track || !section) return;
+      if (!pinWrap || !track) return;
 
       const split = new SplitText(headingRef.current, {
         type: "words",
@@ -42,48 +42,32 @@ export default function FeaturedProjects() {
 
       gsap.fromTo(
         words,
-        { yPercent: 115 },
+        { yPercent: 118 },
         {
           yPercent: 0,
           duration: 0.9,
           stagger: 0.04,
           ease: EASE_EXPO,
           scrollTrigger: {
-            trigger: innerWrapRef.current,
+            trigger: pinWrap,
             start: "top 82%",
             toggleActions: "play none none none",
           },
         }
       );
 
-      gsap.fromTo(
-        ".proj-card-wrap",
-        { clipPath: "inset(100% 0% 0% 0%)" },
-        {
-          clipPath: "inset(0% 0% 0% 0%)",
-          duration: 1.0,
-          stagger: 0.1,
-          ease: EASE_EXPO,
-          scrollTrigger: {
-            trigger: innerWrapRef.current,
-            start: "top 78%",
-            toggleActions: "play none none none",
-          },
-        }
-      );
-
       const getScrollDistance = () =>
-        Math.max(0, track.scrollWidth - section.clientWidth + 48);
+        Math.max(0, track.scrollWidth - document.documentElement.clientWidth);
 
-      // Single Pinned Timeline for Horizontal Track + Internal Card Image Parallax
       const pinTl = gsap.timeline({
         scrollTrigger: {
-          trigger: section,
+          trigger: pinWrap,
           start: "top top",
           end: () => `+=${getScrollDistance()}`,
-          pin: true,
+          pin: sectionRef.current,
+          pinSpacing: true,
           anticipatePin: 1,
-          scrub: 0.8,
+          scrub: 0.5,
           invalidateOnRefresh: true,
           onUpdate: (self) => {
             if (barRef.current) {
@@ -104,10 +88,10 @@ export default function FeaturedProjects() {
         )
         .fromTo(
           ".proj-parallax-img",
-          { xPercent: -6, scale: 1.14 },
+          { xPercent: -7, scale: 1.15 },
           {
-            xPercent: 6,
-            scale: 1.14,
+            xPercent: 7,
+            scale: 1.15,
             ease: "none",
           },
           0
@@ -118,24 +102,20 @@ export default function FeaturedProjects() {
         split.revert();
       };
     },
-    { scope: sectionRef }
+    { scope: pinWrapRef }
   );
 
   return (
-    <section
-      id="projects"
-      ref={sectionRef}
-      className="h-svh w-full overflow-hidden border-y border-ink/15 bg-cloud text-ink"
-    >
-      <div
-        ref={innerWrapRef}
-        className="flex h-full w-full flex-col justify-between py-8 md:py-12"
+    <div id="projects" ref={pinWrapRef} className="w-full">
+      <section
+        ref={sectionRef}
+        className="flex h-svh w-full flex-col justify-between overflow-hidden border-y border-ink/15 bg-cloud pt-20 pb-6 text-ink md:pt-24 md:pb-8"
       >
-        {/* Header inside 100svh */}
-        <div className="page-shell flex flex-wrap items-end justify-between gap-4 pt-12">
+        {/* Top Header */}
+        <div className="page-shell shrink-0 flex flex-wrap items-end justify-between gap-4">
           <h2
             ref={headingRef}
-            className="font-heading text-[clamp(2.1rem,4.4vw,4.25rem)] font-medium leading-tight text-ink"
+            className="font-heading text-[clamp(2rem,4.2vw,4rem)] font-medium leading-tight text-ink"
           >
             Featured Homes & Land Plots
           </h2>
@@ -147,25 +127,25 @@ export default function FeaturedProjects() {
             <div className="h-1 w-28 overflow-hidden bg-ink/15 md:w-44">
               <div
                 ref={barRef}
-                className="h-full w-full origin-left scale-x-0 bg-ink"
+                className="h-full w-full origin-left scale-x-0 bg-ink will-change-transform"
               />
             </div>
           </div>
         </div>
 
-        {/* Horizontal Pinned Track — Sharp Cards Fitting 100% Inside 100svh */}
-        <div className="my-auto w-full overflow-hidden">
+        {/* Middle Track Area — flex-1 min-h-0 guarantees cards never overflow 100svh */}
+        <div className="flex min-h-0 w-full flex-1 items-center overflow-hidden py-4 md:py-6">
           <div
             ref={trackRef}
-            className="flex w-max items-center gap-6 px-4 will-change-transform md:gap-8 md:px-8 lg:px-12 xl:px-16 2xl:px-24"
+            className="flex h-full max-h-[500px] w-max items-stretch gap-6 px-4 will-change-transform md:gap-8 md:px-8 lg:px-12 xl:px-16 2xl:px-24"
           >
             {siteConfig.featuredProjects.map((proj) => (
               <article
                 key={proj.title}
-                className="proj-card-wrap group relative flex h-[64svh] max-h-[540px] w-[85vw] max-w-[460px] shrink-0 flex-col justify-between overflow-hidden border border-ink/15 bg-white text-ink sm:w-[430px]"
+                className="group relative flex h-full w-[84vw] max-w-[440px] shrink-0 flex-col justify-between overflow-hidden border border-ink/15 bg-white text-ink sm:w-[400px] md:w-[430px]"
               >
                 {/* Top Image with Horizontal Parallax */}
-                <div className="relative h-[54%] w-full overflow-hidden bg-cloud">
+                <div className="relative h-[53%] w-full shrink-0 overflow-hidden bg-cloud">
                   <img
                     src={proj.image}
                     alt={proj.title}
@@ -190,24 +170,24 @@ export default function FeaturedProjects() {
                 </div>
 
                 {/* Card Body */}
-                <div className="flex h-[46%] flex-col justify-between p-6">
+                <div className="flex h-[47%] flex-col justify-between p-5 md:p-6">
                   <div>
                     <div className="flex items-baseline justify-between gap-2">
-                      <h3 className="font-heading text-2xl font-medium text-ink">
+                      <h3 className="font-heading text-xl font-medium text-ink md:text-2xl">
                         {proj.title}
                       </h3>
-                      <span className="font-heading text-lg font-semibold text-emerald">
+                      <span className="font-heading text-base font-semibold text-emerald md:text-lg">
                         {proj.price}
                       </span>
                     </div>
 
-                    <div className="mt-3 flex items-center justify-between border-y border-ink/10 py-2.5 text-sm font-light">
+                    <div className="mt-2.5 flex items-center justify-between border-y border-ink/10 py-2 text-xs font-light md:text-sm">
                       <span className="text-ink">{proj.config}</span>
                       <span className="text-ink-muted">{proj.area}</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between pt-1">
                     <span className="text-xs font-light text-ink-muted">
                       Possession:{" "}
                       <span className="font-normal text-ink">
@@ -234,11 +214,11 @@ export default function FeaturedProjects() {
         </div>
 
         {/* Bottom Footnote */}
-        <div className="page-shell flex items-center justify-between text-xs font-normal tracking-wider text-ink-muted uppercase">
+        <div className="page-shell shrink-0 flex items-center justify-between text-xs font-normal tracking-wider text-ink-muted uppercase">
           <span>City Centre & Bidhannagar, Durgapur</span>
           <span>1, 2, 3 BHK & Residential Plots</span>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }

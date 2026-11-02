@@ -24,8 +24,15 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${inter.variable}`}>
-      <body className="bg-white font-sans font-normal text-ink antialiased selection:bg-accent selection:text-white">
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${jakarta.variable} ${inter.variable}`}
+    >
+      <body
+        suppressHydrationWarning
+        className="bg-white font-sans font-normal text-ink antialiased selection:bg-accent selection:text-white"
+      >
         <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>

@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { gsap, useGSAP, EASE_EXPO } from "@/lib/gsap";
 import SectionHeading from "@/components/ui/SectionHeading";
 import DirectionalButton from "@/components/ui/DirectionalButton";
+import { siteConfig } from "@/config/siteConfig";
 import { CalendarDays, Clock, CheckCircle2, Car } from "lucide-react";
 
 const SLOTS = ["10:30 AM", "12:30 PM", "03:00 PM", "05:00 PM"];
@@ -17,6 +18,7 @@ export default function SiteVisitBooking() {
   const slotGridRef = useRef(null);
   const slotBgRef = useRef(null);
   const slotBtnRefs = useRef({});
+  const previewImgRef = useRef(null);
 
   const dates = useMemo(() => {
     const base = new Date("2026-11-02T10:00:00");
@@ -34,6 +36,9 @@ export default function SiteVisitBooking() {
 
   const [selectedDate, setSelectedDate] = useState(dates[0].iso);
   const [selectedSlot, setSelectedSlot] = useState(SLOTS[0]);
+  const selectedDateRef = useRef(dates[0].iso);
+  const selectedSlotRef = useRef(SLOTS[0]);
+
   const [interest, setInterest] = useState("2 BHK Flat (₹52L)");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -76,6 +81,23 @@ export default function SiteVisitBooking() {
           },
         }
       );
+
+      if (previewImgRef.current) {
+        gsap.fromTo(
+          previewImgRef.current,
+          { yPercent: -12 },
+          {
+            yPercent: 12,
+            ease: "none",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: true,
+            },
+          }
+        );
+      }
     },
     { scope: sectionRef }
   );
@@ -86,16 +108,24 @@ export default function SiteVisitBooking() {
     const bg = dateBgRef.current;
     if (!grid || !btn || !bg) return;
 
-    const gRect = grid.getBoundingClientRect();
-    const bRect = btn.getBoundingClientRect();
-    gsap.to(bg, {
-      x: bRect.left - gRect.left,
-      y: bRect.top - gRect.top,
-      width: bRect.width,
-      height: bRect.height,
-      duration: immediate ? 0 : 0.5,
-      ease: EASE_EXPO,
-    });
+    const x = btn.offsetLeft;
+    const y = btn.offsetTop;
+    const width = btn.offsetWidth;
+    const height = btn.offsetHeight;
+
+    if (immediate) {
+      gsap.set(bg, { x, y, width, height });
+    } else {
+      gsap.to(bg, {
+        x,
+        y,
+        width,
+        height,
+        duration: 0.55,
+        ease: EASE_EXPO,
+        overwrite: "auto",
+      });
+    }
   });
 
   const moveSlotHighlight = contextSafe((slot, immediate = false) => {
@@ -104,33 +134,56 @@ export default function SiteVisitBooking() {
     const bg = slotBgRef.current;
     if (!grid || !btn || !bg) return;
 
-    const gRect = grid.getBoundingClientRect();
-    const bRect = btn.getBoundingClientRect();
-    gsap.to(bg, {
-      x: bRect.left - gRect.left,
-      y: bRect.top - gRect.top,
-      width: bRect.width,
-      height: bRect.height,
-      duration: immediate ? 0 : 0.5,
-      ease: EASE_EXPO,
-    });
+    const x = btn.offsetLeft;
+    const y = btn.offsetTop;
+    const width = btn.offsetWidth;
+    const height = btn.offsetHeight;
+
+    if (immediate) {
+      gsap.set(bg, { x, y, width, height });
+    } else {
+      gsap.to(bg, {
+        x,
+        y,
+        width,
+        height,
+        duration: 0.55,
+        ease: EASE_EXPO,
+        overwrite: "auto",
+      });
+    }
   });
 
+  // Initial placement ONLY when form mounts or horizontal window width changes
   useEffect(() => {
     if (submitted) return;
-    moveDateHighlight(selectedDate, true);
-    moveSlotHighlight(selectedSlot, true);
+    moveDateHighlight(selectedDateRef.current, true);
+    moveSlotHighlight(selectedSlotRef.current, true);
     let lastW = window.innerWidth;
     const onResize = () => {
       if (window.innerWidth !== lastW) {
         lastW = window.innerWidth;
-        moveDateHighlight(selectedDate, true);
-        moveSlotHighlight(selectedSlot, true);
+        moveDateHighlight(selectedDateRef.current, true);
+        moveSlotHighlight(selectedSlotRef.current, true);
       }
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [selectedDate, selectedSlot, submitted]);
+  }, [submitted]);
+
+  const handleSelectDate = (iso) => {
+    if (iso === selectedDateRef.current) return;
+    selectedDateRef.current = iso;
+    moveDateHighlight(iso, false);
+    setSelectedDate(iso);
+  };
+
+  const handleSelectSlot = (slot) => {
+    if (slot === selectedSlotRef.current) return;
+    selectedSlotRef.current = slot;
+    moveSlotHighlight(slot, false);
+    setSelectedSlot(slot);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -150,13 +203,30 @@ export default function SiteVisitBooking() {
     >
       <div className="page-shell">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
-          <div className="flex flex-col justify-between lg:col-span-5">
+          <div className="flex flex-col justify-between space-y-8 lg:col-span-5">
             <SectionHeading
               title="See the sample flat in Durgapur."
               subtitle="Pick a date and time for your site visit, or get the complete floor plan and cost sheet PDF on WhatsApp."
             />
 
-            <div className="mt-10 space-y-3 border border-ink/15 bg-cloud p-6 text-sm font-light text-ink">
+            {/* Purposeful Sample-Flat Architectural Preview Image */}
+            <div className="relative aspect-16/10 w-full overflow-hidden border border-ink/15 bg-cloud">
+              <div
+                ref={previewImgRef}
+                className="relative -top-[14%] h-[128%] w-full will-change-transform"
+              >
+                <img
+                  src={siteConfig.siteVisitImage}
+                  alt="Aurelia Durgapur Sample Flat Interior"
+                  className="h-full w-full scale-105 object-cover"
+                />
+              </div>
+              <div className="absolute bottom-3 left-3 border border-ink/15 bg-white/95 px-3.5 py-1.5 text-[11px] font-medium text-ink">
+                Full-Scale 3 BHK Mock-Up Ready at Site
+              </div>
+            </div>
+
+            <div className="space-y-3 border border-ink/15 bg-cloud p-6 text-sm font-light text-ink">
               <div className="overflow-hidden">
                 <div className="booking-text-inner flex items-center gap-3">
                   <Car className="h-5 w-5 text-accent" />
@@ -197,7 +267,7 @@ export default function SiteVisitBooking() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-                {/* Date Picker with Shifting Indicator */}
+                {/* Date Picker with Continuously Sliding Indicator */}
                 <div>
                   <label className="mb-2.5 flex items-center gap-2 text-xs font-normal uppercase tracking-wider text-ink-muted">
                     <CalendarDays className="h-4 w-4 text-accent" />
@@ -205,25 +275,22 @@ export default function SiteVisitBooking() {
                   </label>
                   <div
                     ref={dateGridRef}
-                    className="relative grid grid-cols-3 gap-2 sm:grid-cols-6"
+                    className="relative grid grid-cols-3 gap-2 bg-white p-1.5 sm:grid-cols-6"
                   >
                     <span
                       ref={dateBgRef}
-                      className="pointer-events-none absolute top-0 left-0 bg-ink"
+                      className="pointer-events-none absolute top-0 left-0 z-0 bg-ink will-change-transform"
                     />
                     {dates.map((d) => (
                       <button
                         key={d.iso}
                         ref={(el) => (dateBtnRefs.current[d.iso] = el)}
                         type="button"
-                        onClick={() => {
-                          setSelectedDate(d.iso);
-                          moveDateHighlight(d.iso, false);
-                        }}
-                        className={`relative z-10 flex cursor-pointer flex-col items-center border py-3 transition-colors duration-300 ${
+                        onClick={() => handleSelectDate(d.iso)}
+                        className={`relative z-10 flex cursor-pointer flex-col items-center border bg-transparent py-3 transition-colors duration-300 ${
                           selectedDate === d.iso
                             ? "border-ink text-white"
-                            : "border-ink/15 bg-white/80 text-ink hover:border-ink/40"
+                            : "border-ink/15 text-ink hover:border-ink/40"
                         }`}
                       >
                         <span className="text-[11px] font-light opacity-75">
@@ -238,7 +305,7 @@ export default function SiteVisitBooking() {
                   </div>
                 </div>
 
-                {/* Time Slot Picker with Shifting Indicator */}
+                {/* Time Slot Picker with Continuously Sliding Indicator */}
                 <div>
                   <label className="mb-2.5 flex items-center gap-2 text-xs font-normal uppercase tracking-wider text-ink-muted">
                     <Clock className="h-4 w-4 text-accent" />
@@ -246,25 +313,22 @@ export default function SiteVisitBooking() {
                   </label>
                   <div
                     ref={slotGridRef}
-                    className="relative grid grid-cols-2 gap-2.5 sm:grid-cols-4"
+                    className="relative grid grid-cols-2 gap-2.5 bg-white p-1.5 sm:grid-cols-4"
                   >
                     <span
                       ref={slotBgRef}
-                      className="pointer-events-none absolute top-0 left-0 bg-accent"
+                      className="pointer-events-none absolute top-0 left-0 z-0 bg-accent will-change-transform"
                     />
                     {SLOTS.map((slot) => (
                       <button
                         key={slot}
                         ref={(el) => (slotBtnRefs.current[slot] = el)}
                         type="button"
-                        onClick={() => {
-                          setSelectedSlot(slot);
-                          moveSlotHighlight(slot, false);
-                        }}
-                        className={`relative z-10 min-h-11 cursor-pointer border text-xs font-medium transition-colors duration-300 ${
+                        onClick={() => handleSelectSlot(slot)}
+                        className={`relative z-10 min-h-11 cursor-pointer border bg-transparent text-xs font-medium transition-colors duration-300 ${
                           selectedSlot === slot
                             ? "border-accent text-white"
-                            : "border-ink/15 bg-white/80 text-ink hover:border-ink/40"
+                            : "border-ink/15 text-ink hover:border-ink/40"
                         }`}
                       >
                         {slot}

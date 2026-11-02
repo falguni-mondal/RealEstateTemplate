@@ -10,7 +10,8 @@ import { ArrowUpRight, Compass } from "lucide-react";
 export default function HeroParallaxBg() {
   const sectionRef = useRef(null);
   const bgWrapRef = useRef(null);
-  const stageRef = useRef(null);
+  const leftStageRef = useRef(null);
+  const rightStageRef = useRef(null);
   const ledgerRef = useRef(null);
   const titleRef = useRef(null);
   const bodyRef = useRef(null);
@@ -24,12 +25,12 @@ export default function HeroParallaxBg() {
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-      // 1. True Full-Bleed Background Parallax Scrub (Centered buffer)
+      // 1. Strong Full-Bleed Background Parallax Scrub
       gsap.fromTo(
         bgWrapRef.current,
-        { yPercent: -8 },
+        { yPercent: -18 },
         {
-          yPercent: 8,
+          yPercent: 18,
           ease: "none",
           scrollTrigger: {
             trigger: sectionRef.current,
@@ -40,33 +41,51 @@ export default function HeroParallaxBg() {
         }
       );
 
-      // 2. Differential Scroll Speed on Main Stage vs Bottom Ledger
+      // 2. Strong Differential Scroll Speeds (Left Heading Fast Up, Right Rail Slow Counter-Drift)
+      const mm = gsap.matchMedia();
+      mm.add("(min-width: 1024px)", () => {
+        gsap.fromTo(
+          leftStageRef.current,
+          { y: 120 },
+          {
+            y: -120,
+            ease: "none",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: 0.5,
+            },
+          }
+        );
+
+        gsap.fromTo(
+          rightStageRef.current,
+          { y: -55 },
+          {
+            y: 55,
+            ease: "none",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: 0.5,
+            },
+          }
+        );
+      });
+
       gsap.fromTo(
-        stageRef.current,
-        { y: 40 },
+        ledgerRef.current,
+        { y: 65 },
         {
-          y: -35,
+          y: -45,
           ease: "none",
           scrollTrigger: {
             trigger: sectionRef.current,
             start: "top bottom",
             end: "bottom top",
             scrub: 0.6,
-          },
-        }
-      );
-
-      gsap.fromTo(
-        ledgerRef.current,
-        { y: 20 },
-        {
-          y: -15,
-          ease: "none",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 0.8,
           },
         }
       );
@@ -144,6 +163,7 @@ export default function HeroParallaxBg() {
       return () => {
         cleanupWords();
         cleanupLines();
+        mm.revert();
       };
     },
     { scope: sectionRef }
@@ -158,7 +178,7 @@ export default function HeroParallaxBg() {
       <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         <div
           ref={bgWrapRef}
-          className="relative -top-[12%] h-[124%] w-full will-change-transform"
+          className="relative -top-[20%] h-[140%] w-full will-change-transform"
         >
           <img
             src={siteConfig.heroParallax.bgImage}
@@ -170,7 +190,7 @@ export default function HeroParallaxBg() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/35 to-black/85" />
       </div>
 
-      {/* 1. TOP ARCHITECTURAL HORIZON BAR (Directly on Overlay) */}
+      {/* 1. TOP ARCHITECTURAL HORIZON BAR */}
       <div className="page-shell relative z-10 w-full">
         <div className="flex flex-wrap items-center justify-between gap-4 pb-5">
           <div className="overflow-hidden">
@@ -192,14 +212,14 @@ export default function HeroParallaxBg() {
         />
       </div>
 
-      {/* 2. CENTER ASYMMETRIC ARCHITECTURAL STAGE (Directly on Overlay, No Box) */}
-      <div
-        ref={stageRef}
-        className="page-shell relative z-10 my-auto w-full py-12 will-change-transform md:py-20"
-      >
+      {/* 2. CENTER ASYMMETRIC ARCHITECTURAL STAGE */}
+      <div className="page-shell relative z-10 my-auto w-full py-12 md:py-20">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-end">
-          {/* Left 8 Cols: Massive Editorial Heading */}
-          <div className="lg:col-span-8 lg:pr-8">
+          {/* Left 8 Cols: Fast Scroll-Speed Display Heading */}
+          <div
+            ref={leftStageRef}
+            className="will-change-transform lg:col-span-8 lg:pr-8"
+          >
             <h2
               ref={titleRef}
               className="font-heading text-[clamp(2.65rem,5.6vw,5.75rem)] font-medium leading-[1.06] tracking-tight text-white"
@@ -208,8 +228,11 @@ export default function HeroParallaxBg() {
             </h2>
           </div>
 
-          {/* Right 4 Cols: Architectural Vertical Hairline + Line-Split Copy & CTAs */}
-          <div className="relative lg:col-span-4 lg:pl-10">
+          {/* Right 4 Cols: Counter-Scrolling Architectural Rail */}
+          <div
+            ref={rightStageRef}
+            className="relative will-change-transform lg:col-span-4 lg:pl-10"
+          >
             <span
               ref={vertRuleRef}
               className="pointer-events-none absolute top-0 bottom-0 left-0 hidden w-[1px] bg-white/25 will-change-transform lg:block"
@@ -252,7 +275,7 @@ export default function HeroParallaxBg() {
         </div>
       </div>
 
-      {/* 3. BOTTOM ARCHITECTURAL LEDGER (Directly on Overlay) */}
+      {/* 3. BOTTOM ARCHITECTURAL LEDGER */}
       <div
         ref={ledgerRef}
         className="page-shell relative z-10 w-full will-change-transform"

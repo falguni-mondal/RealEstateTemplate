@@ -17,7 +17,6 @@ export default function GalleryLightbox() {
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-      // Curtain reveal on each gallery frame
       gsap.fromTo(
         ".gallery-item",
         { clipPath: "inset(100% 0% 0% 0%)" },
@@ -34,13 +33,12 @@ export default function GalleryLightbox() {
         }
       );
 
-      // Centered Image Parallax inside each frame
       gsap.utils.toArray(".gallery-parallax-wrap").forEach((wrap) => {
         gsap.fromTo(
           wrap,
-          { yPercent: -6 },
+          { yPercent: -12 },
           {
-            yPercent: 6,
+            yPercent: 12,
             ease: "none",
             scrollTrigger: {
               trigger: ".gallery-grid",
@@ -52,20 +50,35 @@ export default function GalleryLightbox() {
         );
       });
 
-      // Scroll-Speed Manipulation on Alternate Columns (Desktop)
+      // Strong Differential Column Scroll Speeds on Desktop
       const mm = gsap.matchMedia();
       mm.add("(min-width: 1024px)", () => {
         gsap.fromTo(
           ".gallery-speed-fast",
-          { y: 24 },
+          { y: 120 },
           {
-            y: -24,
+            y: -120,
             ease: "none",
             scrollTrigger: {
               trigger: ".gallery-grid",
               start: "top bottom",
               end: "bottom top",
-              scrub: true,
+              scrub: 0.5,
+            },
+          }
+        );
+
+        gsap.fromTo(
+          ".gallery-speed-slow",
+          { y: -45 },
+          {
+            y: 45,
+            ease: "none",
+            scrollTrigger: {
+              trigger: ".gallery-grid",
+              start: "top bottom",
+              end: "bottom top",
+              scrub: 0.5,
             },
           }
         );
@@ -104,14 +117,18 @@ export default function GalleryLightbox() {
           {items.map((item, idx) => (
             <div
               key={item.id}
-              className={idx % 3 === 1 ? "gallery-speed-fast will-change-transform" : ""}
+              className={
+                idx % 3 === 1
+                  ? "gallery-speed-fast will-change-transform"
+                  : "gallery-speed-slow will-change-transform"
+              }
             >
               <button
                 type="button"
                 onClick={() => setActiveIdx(idx)}
                 className="gallery-item group relative aspect-16/11 w-full cursor-pointer overflow-hidden border border-ink/15 bg-cloud text-left"
               >
-                <div className="gallery-parallax-wrap relative -top-[9%] h-[118%] w-full will-change-transform">
+                <div className="gallery-parallax-wrap relative -top-[14%] h-[128%] w-full will-change-transform">
                   <img
                     src={item.src}
                     alt={item.title}

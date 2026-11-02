@@ -21,7 +21,6 @@ export default function HeroCinematic() {
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-      // 1. Word-by-word Y-axis overflow-hidden reveal on Heading
       const cleanupWords = revealWords(headingRef.current, {
         trigger: sectionRef.current,
         start: "top 80%",
@@ -29,7 +28,6 @@ export default function HeroCinematic() {
         duration: 0.95,
       });
 
-      // 2. Line-by-line Y-axis overflow-hidden reveal on Body Subtitle
       const cleanupLines = revealLines(subRef.current, {
         trigger: sectionRef.current,
         start: "top 78%",
@@ -54,7 +52,6 @@ export default function HeroCinematic() {
         }
       );
 
-      // 3. Curtain reveal on video frame
       gsap.fromTo(
         mediaFrameRef.current,
         { clipPath: "inset(100% 0% 0% 0%)" },
@@ -85,12 +82,12 @@ export default function HeroCinematic() {
         }
       );
 
-      // 4. Isolated Video Parallax + Differential Scroll Speed on Spec Box
+      // Strong Video Parallax + Strong Foreground Counter-Scroll Speed Manipulation
       gsap.fromTo(
         videoParallaxRef.current,
-        { yPercent: -6 },
+        { yPercent: -12 },
         {
-          yPercent: 6,
+          yPercent: 12,
           ease: "none",
           scrollTrigger: {
             trigger: mediaFrameRef.current,
@@ -103,15 +100,15 @@ export default function HeroCinematic() {
 
       gsap.fromTo(
         floatCardRef.current,
-        { y: 50 },
+        { y: 135 },
         {
-          y: -40,
+          y: -115,
           ease: "none",
           scrollTrigger: {
-            trigger: sectionRef.current,
+            trigger: mediaFrameRef.current,
             start: "top bottom",
             end: "bottom top",
-            scrub: true,
+            scrub: 0.5,
           },
         }
       );
@@ -178,7 +175,7 @@ export default function HeroCinematic() {
           </div>
         </div>
 
-        {/* Unwashed Framed Video & Image Showcase with Stable svh Height */}
+        {/* Unwashed Framed Video & Image Showcase with Strong Scroll-Speed Floating Bar */}
         <div className="relative mt-14 md:mt-18">
           <div
             ref={mediaFrameRef}
@@ -186,7 +183,7 @@ export default function HeroCinematic() {
           >
             <div
               ref={videoParallaxRef}
-              className="relative -top-[9%] h-[118%] w-full will-change-transform"
+              className="relative -top-[14%] h-[128%] w-full will-change-transform"
             >
               <video
                 ref={videoRef}
@@ -204,7 +201,7 @@ export default function HeroCinematic() {
 
           <div
             ref={floatCardRef}
-            className="relative z-10 mx-auto -mt-12 grid max-w-5xl grid-cols-1 border border-ink/15 bg-white shadow-xl will-change-transform sm:grid-cols-3 md:-mt-16"
+            className="relative z-10 mx-auto -mt-12 grid max-w-5xl grid-cols-1 border border-ink/15 bg-white shadow-2xl will-change-transform sm:grid-cols-3 md:-mt-16"
           >
             {siteConfig.heroAlternative.highlights.map((item) => (
               <div

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { gsap, ScrollTrigger, useGSAP, EASE_EXPO } from "@/lib/gsap";
+import { gsap, useGSAP, EASE_EXPO } from "@/lib/gsap";
 import SectionHeading from "@/components/ui/SectionHeading";
 
 const WB_UNITS = {
@@ -30,9 +30,10 @@ export default function CustomerTools() {
   const tabBarRef = useRef(null);
   const activeBgRef = useRef(null);
   const tabBtnRefs = useRef({});
-  const panelBodyRef = useRef(null);
+  const panelRefs = useRef({});
 
   const [tab, setTab] = useState("emi");
+  const activeTabRef = useRef("emi");
 
   // EMI State
   const [loan, setLoan] = useState(4000000);
@@ -77,49 +78,56 @@ export default function CustomerTools() {
     const bg = activeBgRef.current;
     if (!bar || !btn || !bg) return;
 
-    const barRect = bar.getBoundingClientRect();
-    const btnRect = btn.getBoundingClientRect();
-    const x = btnRect.left - barRect.left;
-    const y = btnRect.top - barRect.top;
+    const x = btn.offsetLeft;
+    const y = btn.offsetTop;
+    const width = btn.offsetWidth;
+    const height = btn.offsetHeight;
 
-    gsap.to(bg, {
-      x,
-      y,
-      width: btnRect.width,
-      height: btnRect.height,
-      duration: immediate ? 0 : 0.55,
-      ease: EASE_EXPO,
-    });
+    if (immediate) {
+      gsap.set(bg, { x, y, width, height });
+    } else {
+      gsap.to(bg, {
+        x,
+        y,
+        width,
+        height,
+        duration: 0.55,
+        ease: EASE_EXPO,
+        overwrite: "auto",
+      });
+    }
   });
 
   useEffect(() => {
-    moveTabIndicator(tab, true);
+    moveTabIndicator(activeTabRef.current, true);
     let lastW = window.innerWidth;
     const onResize = () => {
       if (window.innerWidth !== lastW) {
         lastW = window.innerWidth;
-        moveTabIndicator(tab, true);
+        moveTabIndicator(activeTabRef.current, true);
       }
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [tab]);
+  }, []);
 
   const handleTabSwitch = contextSafe((newTab) => {
-    if (newTab === tab) return;
+    if (newTab === activeTabRef.current) return;
+    activeTabRef.current = newTab;
     moveTabIndicator(newTab, false);
     setTab(newTab);
 
-    if (panelBodyRef.current) {
+    const targetPanel = panelRefs.current[newTab];
+    if (targetPanel) {
+      gsap.killTweensOf(targetPanel);
       gsap.fromTo(
-        panelBodyRef.current,
-        { clipPath: "inset(100% 0% 0% 0%)", y: 20 },
+        targetPanel,
+        { clipPath: "inset(100% 0% 0% 0%)", y: 18 },
         {
           clipPath: "inset(0% 0% 0% 0%)",
           y: 0,
-          duration: 0.65,
+          duration: 0.6,
           ease: EASE_EXPO,
-          onComplete: () => ScrollTrigger.refresh(),
         }
       );
     }
@@ -177,7 +185,7 @@ export default function CustomerTools() {
           >
             <span
               ref={activeBgRef}
-              className="pointer-events-none absolute top-0 left-0 bg-ink"
+              className="pointer-events-none absolute top-0 left-0 z-0 bg-ink will-change-transform"
             />
             {TABS.map((t) => (
               <button
@@ -185,7 +193,7 @@ export default function CustomerTools() {
                 ref={(el) => (tabBtnRefs.current[t.id] = el)}
                 type="button"
                 onClick={() => handleTabSwitch(t.id)}
-                className={`relative z-10 min-h-11 cursor-pointer px-5 py-2.5 text-xs font-normal tracking-wide transition-colors duration-300 sm:text-sm ${
+                className={`relative z-10 min-h-11 cursor-pointer bg-transparent px-5 py-2.5 text-xs font-normal tracking-wide transition-colors duration-300 sm:text-sm ${
                   tab === t.id ? "text-white" : "text-ink-muted hover:text-ink"
                 }`}
               >
@@ -195,9 +203,19 @@ export default function CustomerTools() {
           </div>
         </div>
 
+        {/* Locked-Height CSS Grid Stack: All 3 Panels Share col-start-1 row-start-1 */}
         <div className="tools-shell mt-12 border border-ink/15 bg-white p-6 md:p-12">
-          <div ref={panelBodyRef}>
-            {tab === "emi" && (
+          <div className="grid grid-cols-1 items-center">
+            {/* PANEL 1: EMI CALCULATOR */}
+            <div
+              ref={(el) => (panelRefs.current.emi = el)}
+              aria-hidden={tab !== "emi"}
+              className={`col-start-1 row-start-1 transition-opacity duration-200 ${
+                tab === "emi"
+                  ? "visible pointer-events-auto z-10 opacity-100"
+                  : "invisible pointer-events-none z-0 opacity-0"
+              }`}
+            >
               <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-center">
                 <div className="space-y-8 lg:col-span-7">
                   <div>
@@ -291,7 +309,7 @@ export default function CustomerTools() {
                     <span className="text-xs font-normal tracking-wider text-ink-muted uppercase">
                       Monthly EMI
                     </span>
-                    <p className="font-heading text-4xl font-medium text-ink">
+                    <p className="font-heading text-3xl font-medium text-ink md:text-4xl">
                       {formatINR(emiStats.emi)}
                     </p>
                     <div className="border-t border-ink/10 pt-3 text-sm font-light text-ink-muted">
@@ -311,9 +329,18 @@ export default function CustomerTools() {
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
-            {tab === "afford" && (
+            {/* PANEL 2: HOME AFFORDABILITY */}
+            <div
+              ref={(el) => (panelRefs.current.afford = el)}
+              aria-hidden={tab !== "afford"}
+              className={`col-start-1 row-start-1 transition-opacity duration-200 ${
+                tab === "afford"
+                  ? "visible pointer-events-auto z-10 opacity-100"
+                  : "invisible pointer-events-none z-0 opacity-0"
+              }`}
+            >
               <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-center">
                 <div className="space-y-6 lg:col-span-7">
                   <div>
@@ -375,7 +402,7 @@ export default function CustomerTools() {
                   <span className="text-xs font-normal tracking-wider text-accent uppercase">
                     Recommended Home Budget
                   </span>
-                  <p className="mt-2 font-heading text-4xl font-medium text-ink md:text-5xl">
+                  <p className="mt-2 font-heading text-3xl font-medium text-ink md:text-4xl">
                     {formatINR(affordStats.budget)}
                   </p>
                   <div className="mt-6 space-y-2 border-t border-ink/15 pt-4 text-sm font-light text-ink-muted">
@@ -394,9 +421,18 @@ export default function CustomerTools() {
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
-            {tab === "area" && (
+            {/* PANEL 3: WEST BENGAL AREA CONVERTER */}
+            <div
+              ref={(el) => (panelRefs.current.area = el)}
+              aria-hidden={tab !== "area"}
+              className={`col-start-1 row-start-1 transition-opacity duration-200 ${
+                tab === "area"
+                  ? "visible pointer-events-auto z-10 opacity-100"
+                  : "invisible pointer-events-none z-0 opacity-0"
+              }`}
+            >
               <div className="space-y-8">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
@@ -443,14 +479,14 @@ export default function CustomerTools() {
                       <span className="block text-xs font-light text-ink-muted">
                         {c.label}
                       </span>
-                      <span className="mt-2 block font-heading text-2xl font-medium md:text-3xl">
+                      <span className="mt-2 block font-heading text-2xl font-medium">
                         {c.val}
                       </span>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>

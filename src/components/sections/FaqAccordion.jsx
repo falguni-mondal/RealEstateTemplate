@@ -1,7 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { gsap, ScrollTrigger, SplitText, useGSAP, EASE_EXPO, revealWords } from "@/lib/gsap";
+import { useState, useRef } from "react";
+import {
+  gsap,
+  ScrollTrigger,
+  SplitText,
+  useGSAP,
+  EASE_EXPO,
+  revealWords,
+} from "@/lib/gsap";
 import SectionHeading from "@/components/ui/SectionHeading";
 import { siteConfig } from "@/config/siteConfig";
 
@@ -15,7 +22,6 @@ export default function FaqAccordion() {
 
   const { contextSafe } = useGSAP({ scope: sectionRef });
 
-  // Split FAQ questions into words & FAQ answers into line-by-line masks
   useGSAP(
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -127,7 +133,7 @@ export default function FaqAccordion() {
   return (
     <section id="faq" ref={sectionRef} className="bg-cloud py-24 sm:py-28 md:py-36">
       <div className="page-shell">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-5">
             <SectionHeading
               title="Common questions."

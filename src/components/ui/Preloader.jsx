@@ -42,12 +42,12 @@ export default function Preloader() {
       const words = gsap.utils.toArray(".preloader-word-item");
       const metaItems = gsap.utils.toArray(".preloader-meta-item");
 
-      // Normalize initial states explicitly in GSAP to match CSS classes
       gsap.set(vLineRefs.current, { scaleY: 0, transformOrigin: "top center" });
       gsap.set(centerLineRef.current, { scaleX: 0, transformOrigin: "left center" });
       gsap.set(accentLineRef.current, { scaleX: 0, transformOrigin: "left center" });
       gsap.set([words, metaItems], { y: 0, yPercent: 125 });
       gsap.set(shutterRefs.current, { yPercent: 0 });
+      gsap.set(stageOverlayRef.current, { autoAlpha: 1 });
 
       const tl = gsap.timeline({
         onComplete: () => {
@@ -58,98 +58,76 @@ export default function Preloader() {
         },
       });
 
-      // Phase 1: Draw 6 vertical architectural drafting hairlines + center datum axis
+      // Phase 1: Draw architectural grid lines & reveal text
       tl.to(vLineRefs.current, {
         scaleY: 1,
-        duration: 0.65,
-        stagger: 0.045,
+        duration: 0.6,
+        stagger: 0.04,
         ease: EASE_EXPO,
       })
         .to(
           centerLineRef.current,
           {
             scaleX: 1,
-            duration: 0.7,
+            duration: 0.65,
             ease: EASE_EXPO,
           },
-          0.1
+          0.08
         )
-        // Phase 2: Reveal architectural metadata & main display words on Y-axis
         .to(
           metaItems,
           {
             yPercent: 0,
-            duration: 0.75,
-            stagger: 0.06,
+            duration: 0.7,
+            stagger: 0.05,
             ease: EASE_EXPO,
           },
-          0.2
+          0.15
         )
         .to(
           words,
           {
             yPercent: 0,
-            duration: 0.85,
+            duration: 0.8,
             stagger: 0.045,
             ease: EASE_EXPO,
           },
-          0.25
+          0.18
         )
         .to(
           accentLineRef.current,
           {
             scaleX: 1,
-            duration: 0.85,
+            duration: 0.8,
             ease: "power3.inOut",
           },
-          0.25
+          0.2
         )
-        // Phase 3: Clean upward retraction of words & lines into masks
+        // Phase 2: Smoothly fade out all texts and center lines FIRST
         .to(
-          [metaItems, words],
+          [stageOverlayRef.current, vLineRefs.current],
           {
-            yPercent: -125,
-            duration: 0.5,
-            stagger: 0.02,
-            ease: "power3.in",
-          },
-          1.25
-        )
-        .to(
-          [centerLineRef.current, accentLineRef.current],
-          {
-            scaleX: 0,
-            transformOrigin: "right center",
+            autoAlpha: 0,
             duration: 0.45,
-            ease: EASE_EXPO,
+            ease: "power2.inOut",
           },
-          1.3
+          "+=0.3"
         )
-        .to(
-          vLineRefs.current,
-          {
-            scaleY: 0,
-            transformOrigin: "bottom center",
-            duration: 0.45,
-            stagger: 0.03,
-            ease: EASE_EXPO,
-          },
-          1.3
-        )
-        .set(stageOverlayRef.current, { autoAlpha: 0 }, 1.72)
-        // Phase 4: 6-Part Architectural Curtain Lift (Left-to-Right Wave)
+        // Phase 3: THEN run the 6-part curtain reveal animation
+        .call(triggerHeroStart, null, ">-0.05")
         .to(
           shutterRefs.current,
           {
             yPercent: -102,
-            duration: 0.95,
-            stagger: 0.055,
+            duration: 1.05,
+            stagger: {
+              each: 0.06,
+              from: "center",
+            },
             ease: "expo.inOut",
           },
-          1.68
-        )
-        // Trigger Hero & Navbar animations while curtains are rising for seamless handoff
-        .call(triggerHeroStart, null, 1.92);
+          ">"
+        );
 
       return () => {
         tl.kill();
@@ -167,13 +145,13 @@ export default function Preloader() {
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 z-50 overflow-hidden"
     >
-      {/* 6 Architectural Curtain Shutters with 1px Overlap so Zero Seams Show */}
+      {/* 6 Architectural Curtain Shutters with 1px Overlap */}
       <div className="grid h-svh w-full grid-cols-6">
         {SHUTTERS.map((col, idx) => (
           <div key={col} className="relative h-full w-full overflow-visible">
             <div
               ref={(el) => (shutterRefs.current[idx] = el)}
-              className="relative -ml-[1px] h-full w-[calc(100%+2px)] bg-cloud will-change-transform"
+              className="relative -ml-[1px] h-full w-[calc(100%+2px)] border-b border-ink/15 bg-cloud will-change-transform"
             >
               <span
                 ref={(el) => (vLineRefs.current[idx] = el)}
@@ -184,12 +162,11 @@ export default function Preloader() {
         ))}
       </div>
 
-      {/* Central Architectural Drafting Stage */}
+      {/* Central Architectural Stage (Fades Out Smoothly Before Curtains Lift) */}
       <div
         ref={stageOverlayRef}
-        className="absolute inset-0 flex flex-col justify-between p-6 sm:p-10 md:p-16"
+        className="absolute inset-0 flex flex-col justify-between p-6 will-change-[opacity] sm:p-10 md:p-16"
       >
-        {/* Top Corner Coordinates */}
         <div className="flex items-center justify-between">
           <div className="overflow-hidden">
             <span className="preloader-meta-item preloader-init-y block text-[11px] font-medium tracking-[0.24em] text-ink uppercase">
@@ -203,7 +180,6 @@ export default function Preloader() {
           </div>
         </div>
 
-        {/* Center Architectural Datum & Word-Split Typography */}
         <div className="mx-auto w-full max-w-5xl">
           <div className="mb-4 flex items-baseline justify-between">
             <div className="overflow-hidden">
@@ -213,7 +189,6 @@ export default function Preloader() {
             </div>
           </div>
 
-          {/* Dual-Layer Center Axis Line */}
           <div className="relative h-[1.5px] w-full overflow-hidden">
             <div
               ref={centerLineRef}
@@ -225,7 +200,6 @@ export default function Preloader() {
             />
           </div>
 
-          {/* Main Staggered Words */}
           <div className="mt-6 flex flex-wrap items-baseline gap-x-3.5 gap-y-2 sm:gap-x-5">
             {DISPLAY_WORDS.map((word) => (
               <span key={word} className="word-mask">
@@ -237,7 +211,6 @@ export default function Preloader() {
           </div>
         </div>
 
-        {/* Bottom Architectural Footer Bar */}
         <div className="flex items-center justify-between">
           <div className="overflow-hidden">
             <span className="preloader-meta-item preloader-init-y block text-[11px] font-light tracking-[0.2em] text-ink-muted uppercase">

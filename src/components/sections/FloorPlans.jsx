@@ -15,22 +15,21 @@ export default function FloorPlans() {
   const tabBarRef = useRef(null);
   const activeBgRef = useRef(null);
   const tabBtnRefs = useRef({});
-  const topImgWrapRef = useRef(null);
-  const topImgRef = useRef(null);
-  const textWrapRef = useRef(null);
+  const layerRefs = useRef({});
+  const imgRefs = useRef({});
+  const specPanelRefs = useRef({});
 
-  const [prevKey, setPrevKey] = useState("2 BHK");
   const [activeKey, setActiveKey] = useState("2 BHK");
+  const activeKeyRef = useRef("2 BHK");
+  const zCounterRef = useRef(10);
 
   const { scrollTo } = useSmoothScroll();
   const { contextSafe } = useGSAP({ scope: sectionRef });
 
-  const prevPlan = siteConfig.floorPlans[prevKey];
-  const plan = siteConfig.floorPlans[activeKey];
-
   useGSAP(
     () => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
       gsap.fromTo(
         ".floorplan-box",
         { clipPath: "inset(100% 0% 0% 0%)" },
@@ -45,6 +44,15 @@ export default function FloorPlans() {
           },
         }
       );
+
+      keys.forEach((k) => {
+        const layer = layerRefs.current[k];
+        if (!layer) return;
+        gsap.set(layer, {
+          zIndex: k === "2 BHK" ? 10 : 1,
+          clipPath: "inset(0% 0% 0% 0%)",
+        });
+      });
     },
     { scope: sectionRef }
   );
@@ -55,66 +63,78 @@ export default function FloorPlans() {
     const bg = activeBgRef.current;
     if (!bar || !btn || !bg) return;
 
-    const barRect = bar.getBoundingClientRect();
-    const btnRect = btn.getBoundingClientRect();
-    const x = btnRect.left - barRect.left;
-    const y = btnRect.top - barRect.top;
+    const x = btn.offsetLeft;
+    const y = btn.offsetTop;
+    const width = btn.offsetWidth;
+    const height = btn.offsetHeight;
 
-    gsap.to(bg, {
-      x,
-      y,
-      width: btnRect.width,
-      height: btnRect.height,
-      duration: immediate ? 0 : 0.55,
-      ease: EASE_EXPO,
-    });
+    if (immediate) {
+      gsap.set(bg, { x, y, width, height });
+    } else {
+      gsap.to(bg, {
+        x,
+        y,
+        width,
+        height,
+        duration: 0.55,
+        ease: EASE_EXPO,
+        overwrite: "auto",
+      });
+    }
   });
 
   useEffect(() => {
-    moveTabIndicator(activeKey, true);
+    moveTabIndicator(activeKeyRef.current, true);
     let lastW = window.innerWidth;
     const onResize = () => {
       if (window.innerWidth !== lastW) {
         lastW = window.innerWidth;
-        moveTabIndicator(activeKey, true);
+        moveTabIndicator(activeKeyRef.current, true);
       }
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [activeKey]);
+  }, []);
 
   const handleSelectTab = contextSafe((nextKey) => {
-    if (nextKey === activeKey) return;
-    setPrevKey(activeKey);
-    setActiveKey(nextKey);
+    if (nextKey === activeKeyRef.current) return;
+    activeKeyRef.current = nextKey;
     moveTabIndicator(nextKey, false);
+    setActiveKey(nextKey);
 
-    // 1. Curtain Reveal for New Floor Plan Image over Previous Image
-    if (topImgWrapRef.current && topImgRef.current) {
-      gsap.killTweensOf([topImgWrapRef.current, topImgRef.current]);
+    // 1. Pre-Mounted Curtain Reveal for New Floor Plan Image over Previous Image
+    zCounterRef.current += 1;
+    const nextLayer = layerRefs.current[nextKey];
+    const nextImg = imgRefs.current[nextKey];
+
+    if (nextLayer && nextImg) {
+      gsap.killTweensOf([nextLayer, nextImg]);
+      gsap.set(nextLayer, {
+        zIndex: zCounterRef.current,
+        clipPath: "inset(100% 0% 0% 0%)",
+      });
+      gsap.to(nextLayer, {
+        clipPath: "inset(0% 0% 0% 0%)",
+        duration: 0.75,
+        ease: EASE_EXPO,
+        overwrite: "auto",
+      });
       gsap.fromTo(
-        topImgWrapRef.current,
-        { clipPath: "inset(100% 0% 0% 0%)" },
-        {
-          clipPath: "inset(0% 0% 0% 0%)",
-          duration: 0.75,
-          ease: EASE_EXPO,
-        }
-      );
-      gsap.fromTo(
-        topImgRef.current,
-        { scale: 1.15 },
+        nextImg,
+        { scale: 1.16 },
         {
           scale: 1,
           duration: 0.85,
           ease: EASE_OUT,
+          overwrite: "auto",
         }
       );
     }
 
-    // 2. Smooth Y-Axis Mask Slide for Text Details
-    if (textWrapRef.current) {
-      const items = textWrapRef.current.querySelectorAll(".fp-text-anim");
+    // 2. Smooth Y-Axis Mask Slide for the Newly Selected Spec Panel
+    const nextSpecPanel = specPanelRefs.current[nextKey];
+    if (nextSpecPanel) {
+      const items = nextSpecPanel.querySelectorAll(".fp-text-anim");
       gsap.killTweensOf(items);
       gsap.fromTo(
         items,
@@ -138,14 +158,14 @@ export default function FloorPlans() {
             subtitle="Switch between 1 BHK, 2 BHK, 3 BHK flats and residential land plots."
           />
 
-          {/* Sharp Tab Bar with Shifting Active Indicator */}
+          {/* Sharp Tab Bar with Continuously Shifting Active Indicator */}
           <div
             ref={tabBarRef}
             className="relative inline-flex flex-wrap self-start border border-ink/20 bg-white p-1 lg:self-auto"
           >
             <span
               ref={activeBgRef}
-              className="pointer-events-none absolute top-0 left-0 bg-ink"
+              className="pointer-events-none absolute top-0 left-0 z-0 bg-ink will-change-transform"
             />
             {keys.map((k) => (
               <button
@@ -153,7 +173,7 @@ export default function FloorPlans() {
                 ref={(el) => (tabBtnRefs.current[k] = el)}
                 type="button"
                 onClick={() => handleSelectTab(k)}
-                className={`relative z-10 min-h-11 cursor-pointer px-6 py-2.5 text-xs font-medium uppercase tracking-wider transition-colors duration-300 sm:text-sm ${
+                className={`relative z-10 min-h-11 cursor-pointer bg-transparent px-6 py-2.5 text-xs font-medium uppercase tracking-wider transition-colors duration-300 sm:text-sm ${
                   activeKey === k ? "text-white" : "text-ink-muted hover:text-ink"
                 }`}
               >
@@ -164,109 +184,130 @@ export default function FloorPlans() {
         </div>
 
         <div className="floorplan-box mt-12 grid grid-cols-1 gap-10 border border-ink/15 bg-white p-6 md:p-12 lg:grid-cols-12 lg:items-center">
-          {/* Left Specs with Masked Y-Axis Slide Transition */}
-          <div ref={textWrapRef} className="space-y-6 lg:col-span-6">
-            <div className="overflow-hidden">
-              <span className="fp-text-anim inline-block border border-ink/15 bg-cloud px-4 py-1.5 text-xs font-normal tracking-wider text-ink uppercase">
-                {plan.facing}
-              </span>
-            </div>
-
-            <div>
-              <div className="overflow-hidden">
-                <h3 className="fp-text-anim font-heading text-3xl font-medium text-ink md:text-4xl">
-                  {plan.title}
-                </h3>
-              </div>
-              <div className="mt-2 overflow-hidden">
-                <p className="fp-text-anim font-heading text-4xl font-medium text-emerald md:text-5xl">
-                  {plan.price}
-                </p>
-              </div>
-              <div className="mt-1 overflow-hidden">
-                <span className="fp-text-anim block text-sm font-light text-ink-muted">
-                  Booking Amount:{" "}
-                  <span className="font-normal text-ink">
-                    {plan.bookingAmount}
-                  </span>
-                </span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 border-t border-l border-ink/15">
-              <div className="overflow-hidden border-r border-b border-ink/15 bg-cloud p-4">
-                <div className="fp-text-anim">
-                  <span className="block text-[11px] font-normal tracking-wider text-ink-muted uppercase">
-                    Carpet Area
-                  </span>
-                  <span className="mt-1 block font-heading text-base font-medium text-ink md:text-xl">
-                    {plan.carpetArea}
-                  </span>
-                </div>
-              </div>
-              <div className="overflow-hidden border-r border-b border-ink/15 bg-cloud p-4">
-                <div className="fp-text-anim">
-                  <span className="block text-[11px] font-normal tracking-wider text-ink-muted uppercase">
-                    Balcony
-                  </span>
-                  <span className="mt-1 block font-heading text-base font-medium text-ink md:text-xl">
-                    {plan.balconyArea}
-                  </span>
-                </div>
-              </div>
-              <div className="overflow-hidden border-r border-b border-ink/15 bg-cloud p-4">
-                <div className="fp-text-anim">
-                  <span className="block text-[11px] font-normal tracking-wider text-ink-muted uppercase">
-                    Total Area
-                  </span>
-                  <span className="mt-1 block font-heading text-base font-medium text-ink md:text-xl">
-                    {plan.superBuiltUp}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <ul className="space-y-2.5">
-              {plan.highlights.map((h) => (
-                <li key={h} className="overflow-hidden">
-                  <div className="fp-text-anim flex items-center gap-2.5 text-sm font-light text-ink md:text-base">
-                    <Check className="h-4 w-4 text-emerald" />
-                    {h}
+          {/* Left Specs: Locked-Height Grid Stack so Height Never Shifts */}
+          <div className="grid grid-cols-1 items-center lg:col-span-6">
+            {keys.map((k) => {
+              const p = siteConfig.floorPlans[k];
+              const isSelected = activeKey === k;
+              return (
+                <div
+                  key={k}
+                  ref={(el) => (specPanelRefs.current[k] = el)}
+                  aria-hidden={!isSelected}
+                  className={`col-start-1 row-start-1 space-y-6 transition-opacity duration-200 ${
+                    isSelected
+                      ? "visible pointer-events-auto z-10 opacity-100"
+                      : "invisible pointer-events-none z-0 opacity-0"
+                  }`}
+                >
+                  <div className="overflow-hidden">
+                    <span className="fp-text-anim inline-block border border-ink/15 bg-cloud px-4 py-1.5 text-xs font-normal tracking-wider text-ink uppercase">
+                      {p.facing}
+                    </span>
                   </div>
-                </li>
-              ))}
-            </ul>
 
-            <div className="pt-2">
-              <DirectionalButton
-                href="#site-visit"
-                variant="dark"
-                onClick={(e) => {
-                  e.preventDefault();
-                  scrollTo("#site-visit");
-                }}
-              >
-                Request Full Cost Sheet & Brochure
-                <ArrowUpRight className="h-4 w-4" />
-              </DirectionalButton>
-            </div>
+                  <div>
+                    <div className="overflow-hidden">
+                      <h3 className="fp-text-anim font-heading text-2xl font-medium text-ink md:text-3xl">
+                        {p.title}
+                      </h3>
+                    </div>
+                    <div className="mt-2 overflow-hidden">
+                      <p className="fp-text-anim font-heading text-3xl font-medium text-emerald md:text-4xl">
+                        {p.price}
+                      </p>
+                    </div>
+                    <div className="mt-1 overflow-hidden">
+                      <span className="fp-text-anim block text-sm font-light text-ink-muted">
+                        Booking Amount:{" "}
+                        <span className="font-normal text-ink">
+                          {p.bookingAmount}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 border-t border-l border-ink/15">
+                    <div className="overflow-hidden border-r border-b border-ink/15 bg-cloud p-4">
+                      <div className="fp-text-anim">
+                        <span className="block text-[11px] font-normal tracking-wider text-ink-muted uppercase">
+                          Carpet Area
+                        </span>
+                        <span className="mt-1 block font-heading text-sm font-medium text-ink md:text-lg">
+                          {p.carpetArea}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="overflow-hidden border-r border-b border-ink/15 bg-cloud p-4">
+                      <div className="fp-text-anim">
+                        <span className="block text-[11px] font-normal tracking-wider text-ink-muted uppercase">
+                          Balcony
+                        </span>
+                        <span className="mt-1 block font-heading text-sm font-medium text-ink md:text-lg">
+                          {p.balconyArea}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="overflow-hidden border-r border-b border-ink/15 bg-cloud p-4">
+                      <div className="fp-text-anim">
+                        <span className="block text-[11px] font-normal tracking-wider text-ink-muted uppercase">
+                          Total Area
+                        </span>
+                        <span className="mt-1 block font-heading text-sm font-medium text-ink md:text-lg">
+                          {p.superBuiltUp}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <ul className="space-y-2.5">
+                    {p.highlights.map((h) => (
+                      <li key={h} className="overflow-hidden">
+                        <div className="fp-text-anim flex items-center gap-2.5 text-sm font-light text-ink md:text-base">
+                          <Check className="h-4 w-4 text-emerald" />
+                          {h}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="pt-2">
+                    <DirectionalButton
+                      href="#site-visit"
+                      variant="dark"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        scrollTo("#site-visit");
+                      }}
+                    >
+                      Request Full Cost Sheet & Brochure
+                      <ArrowUpRight className="h-4 w-4" />
+                    </DirectionalButton>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Right Image with Continuous Dual-Layer Curtain Reveal */}
+          {/* Right Image with Pre-Mounted Multi-Layer Curtain Reveal */}
           <div className="relative aspect-4/3 w-full overflow-hidden border border-ink/15 bg-cloud lg:col-span-6">
-            <img
-              src={prevPlan.image}
-              alt={prevPlan.title}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <div ref={topImgWrapRef} className="absolute inset-0 overflow-hidden">
-              <img
-                ref={topImgRef}
-                src={plan.image}
-                alt={plan.title}
-                className="h-full w-full object-cover will-change-transform"
-              />
-            </div>
+            {keys.map((k) => {
+              const p = siteConfig.floorPlans[k];
+              return (
+                <div
+                  key={k}
+                  ref={(el) => (layerRefs.current[k] = el)}
+                  className="absolute inset-0 overflow-hidden bg-cloud will-change-[clip-path]"
+                >
+                  <img
+                    ref={(el) => (imgRefs.current[k] = el)}
+                    src={p.image}
+                    alt={p.title}
+                    className="h-full w-full object-cover will-change-transform"
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

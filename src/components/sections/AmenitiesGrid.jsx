@@ -6,6 +6,8 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import { siteConfig } from "@/config/siteConfig";
 import { ArrowUpRight } from "lucide-react";
 
+const CURSOR_STORAGE_KEY = "__aurelia_cursor_pos";
+
 export default function AmenitiesGrid() {
   const sectionRef = useRef(null);
   const listRef = useRef(null);
@@ -148,49 +150,96 @@ export default function AmenitiesGrid() {
   });
 
   useEffect(() => {
-    const onGlobalMouseMove = (e) => {
-      pointerPos.current = {
-        x: e.clientX,
-        y: e.clientY,
-        hasCoordinates: true,
-      };
+    // 1. Restore last known cursor coordinates from sessionStorage right after a page reload
+    try {
+      const saved = sessionStorage.getItem(CURSOR_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (typeof parsed?.x === "number" && typeof parsed?.y === "number") {
+          pointerPos.current = {
+            x: parsed.x,
+            y: parsed.y,
+            hasCoordinates: true,
+          };
+        }
+      }
+    } catch {
+      // Ignore storage errors
+    }
+
+    const savePointer = (x, y) => {
+      pointerPos.current = { x, y, hasCoordinates: true };
+      try {
+        sessionStorage.setItem(CURSOR_STORAGE_KEY, JSON.stringify({ x, y }));
+      } catch {
+        // Ignore storage errors
+      }
     };
 
-    const onWindowScroll = () => {
-      if (
-        !pointerPos.current.hasCoordinates ||
-        !listRef.current ||
-        window.innerWidth < 1024
-      ) {
+    const onGlobalPointer = (e) => {
+      savePointer(e.clientX, e.clientY);
+    };
+
+    const evaluateStationaryCursorOnScroll = () => {
+      if (!listRef.current || window.innerWidth < 1024) return;
+
+      const listRect = listRef.current.getBoundingClientRect();
+
+      // Case A: We have coordinates (either from mousemove or restored across reload via sessionStorage)
+      if (pointerPos.current.hasCoordinates) {
+        const { x, y } = pointerPos.current;
+        const insideBounds =
+          x >= listRect.left &&
+          x <= listRect.right &&
+          y >= listRect.top &&
+          y <= listRect.bottom;
+
+        if (!insideBounds) {
+          hideFloatingPreview();
+          return;
+        }
+
+        showFloatingPreview(x, y);
+        const elUnderMouse = document.elementFromPoint(x, y);
+        const row = elUnderMouse?.closest("[data-amenity-idx]");
+        if (row) {
+          const idx = Number(row.getAttribute("data-amenity-idx"));
+          if (!Number.isNaN(idx)) {
+            triggerImageCurtainSwitch(idx);
+          }
+        }
         return;
       }
 
-      const { x, y } = pointerPos.current;
-      const rect = listRef.current.getBoundingClientRect();
-      const insideBounds =
-        x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+      // Case B: Fresh tab with zero mouse movement ever — inspect native CSS :hover state on rows!
+      const hoveredRow = listRef.current.querySelector("[data-amenity-idx]:hover");
+      if (hoveredRow) {
+        const rowRect = hoveredRow.getBoundingClientRect();
+        const fallbackX = listRect.left + listRect.width * 0.62;
+        const fallbackY = rowRect.top + rowRect.height / 2;
+        showFloatingPreview(fallbackX, fallbackY);
 
-      if (!insideBounds) {
-        hideFloatingPreview();
-        return;
-      }
-
-      showFloatingPreview(x, y);
-      const elUnderMouse = document.elementFromPoint(x, y);
-      const row = elUnderMouse?.closest("[data-amenity-idx]");
-      if (row) {
-        const idx = Number(row.getAttribute("data-amenity-idx"));
+        const idx = Number(hoveredRow.getAttribute("data-amenity-idx"));
         if (!Number.isNaN(idx)) {
           triggerImageCurtainSwitch(idx);
         }
+      } else {
+        hideFloatingPreview();
       }
     };
 
-    window.addEventListener("mousemove", onGlobalMouseMove, { passive: true });
-    window.addEventListener("scroll", onWindowScroll, { passive: true });
+    window.addEventListener("pointermove", onGlobalPointer, { passive: true });
+    window.addEventListener("mousemove", onGlobalPointer, { passive: true });
+    window.addEventListener("mouseover", onGlobalPointer, { passive: true });
+    window.addEventListener("scroll", evaluateStationaryCursorOnScroll, {
+      passive: true,
+    });
+
     return () => {
-      window.removeEventListener("mousemove", onGlobalMouseMove);
-      window.removeEventListener("scroll", onWindowScroll);
+      window.removeEventListener("pointermove", onGlobalPointer);
+      window.removeEventListener("mousemove", onGlobalPointer);
+      window.removeEventListener("mouseover", onGlobalPointer);
+      window.removeEventListener("scroll", evaluateStationaryCursorOnScroll);
     };
   }, []);
 
@@ -223,7 +272,15 @@ export default function AmenitiesGrid() {
             <div
               key={item.title}
               data-amenity-idx={idx}
-              onPointerEnter={() => triggerImageCurtainSwitch(idx)}
+              onPointerEnter={(e) => {
+                pointerPos.current = {
+                  x: e.clientX,
+                  y: e.clientY,
+                  hasCoordinates: true,
+                };
+                showFloatingPreview(e.clientX, e.clientY);
+                triggerImageCurtainSwitch(idx);
+              }}
               className="group py-8 transition-colors hover:bg-cloud md:px-6"
             >
               <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
